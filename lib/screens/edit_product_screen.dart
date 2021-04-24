@@ -95,7 +95,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   //triggers a method on every TextFormField which allows us
   //to take the value entered into the TextFormField
-  void _saveForm() {
+  Future<void> _saveForm() async {
     //triggers the validators and returns true
     //if all user inputs are valid
     final isValid = _form.currentState.validate();
@@ -115,10 +115,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
         _isLoading = false;
       });
     } else {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_editedProduct)
-          .catchError((error) {
-        return showDialog<Null>(
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .addProduct(_editedProduct);
+      } catch (error) {
+        //to wait for the user to click okay and pop the dialog 
+        //before running the code in finally
+        await showDialog<Null>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text("An error has occured"),
@@ -133,17 +136,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ],
           ),
         );
-      }).then((_) {
-        //we only pop once the product was added
+      } finally {
+        //code  always runs no matter if we succeeded or not
+        ////we only pop once the product was added
         setState(() {
           _isLoading = false;
         });
         Navigator.of(context).pop();
-      });
+      }
     }
-    // print(_editedProduct.title);
-    // print(_editedProduct.description);
-    // print(_editedProduct.price);
   }
 
   @override

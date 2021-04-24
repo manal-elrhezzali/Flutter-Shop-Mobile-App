@@ -68,47 +68,84 @@ class Products with ChangeNotifier {
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-
-  Future<void> addProduct(Product product) {
+  //by using "async" the method on which it is useed always
+  //returns a Future (our code gets wrapped in a Future 
+  //that is why we don't have to use the return)
+  Future<void> addProduct(Product product) async {
     const url =
         "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json";
-    // final url =
-    //     Uri.parse('https://flutter-update.firebaseio.com/products.json');
-    
-    //returns the Future that "then" returns 
-    //(that Future object resolves to a void  Future<void>)
-    return http
-        .post(
-      url,
-      //converts value we pass to json format
-      body: json.encode({
-        "title": product.title,
-        "description": product.description,
-        "imageUrl": product.imageUrl,
-        "price": product.price.toString(),
-        "isFavorite": product.isFavorite,
-      }),
-      //then takes a function which will execute
-      //once we have a response (in this case)
-    )
-        .then((response) {
+    // await : we want to wait for this operation
+    // to finish before moving to the next code
+    // <=> means it wraps the code that comes
+    // after the await code into a "then"
+    try {
+      final response = await http.post(
+        url,
+        body: json.encode({
+          "title": product.title,
+          "description": product.description,
+          "imageUrl": product.imageUrl,
+          "price": product.price.toString(),
+          "isFavorite": product.isFavorite,
+        }),
+      );
+      //This code gets wrapped in a "then"
       print(json.decode(response.body));
       final newProduct = Product(
         title: product.title,
         description: product.description,
         price: product.price,
         imageUrl: product.imageUrl,
-        //decodes response body from json format to Map 
+        //decodes response body from json format to Map
         id: json.decode(response.body)["name"],
       );
       _items.insert(0, newProduct);
       //_items.add(newProduct);
       notifyListeners();
-    }).catchError((error){
+    } catch (error) {
       print(error);
       //to add another catchError in another class
       throw error;
-    });
+    }
+
+    //--------------using Future without async & await--------------
+    // final url =
+    //     Uri.parse('https://flutter-update.firebaseio.com/products.json');
+
+    // //returns the Future that "then" returns
+    // //(that Future object resolves to a void  Future<void>)
+    // return http
+    //     .post(
+    //   url,
+    //   //converts value we pass to json format
+    //   body: json.encode({
+    //     "title": product.title,
+    //     "description": product.description,
+    //     "imageUrl": product.imageUrl,
+    //     "price": product.price.toString(),
+    //     "isFavorite": product.isFavorite,
+    //   }),
+    //   //then takes a function which will execute
+    //   //once we have a response (in this case)
+    // )
+    //     .then((response) {
+    //   print(json.decode(response.body));
+    //   final newProduct = Product(
+    //     title: product.title,
+    //     description: product.description,
+    //     price: product.price,
+    //     imageUrl: product.imageUrl,
+    //     //decodes response body from json format to Map
+    //     id: json.decode(response.body)["name"],
+    //   );
+    //   _items.insert(0, newProduct);
+    //   //_items.add(newProduct);
+    //   notifyListeners();
+    // }).catchError((error){
+    //   print(error);
+    //   //to add another catchError in another class
+    //   throw error;
+    // });
   }
 
   void updateProduct(String id, Product newProduct) {
