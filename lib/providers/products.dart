@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import './product.dart';
 
 class Products with ChangeNotifier {
@@ -65,17 +68,47 @@ class Products with ChangeNotifier {
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  void addProduct(Product product) {
-    final newProduct = Product(
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      imageUrl: product.imageUrl,
-      id: DateTime.now().toString(),
-    );
-    _items.insert(0, newProduct);
-    //_items.add(newProduct);
-    notifyListeners();
+
+  Future<void> addProduct(Product product) {
+    const url =
+        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json";
+    // final url =
+    //     Uri.parse('https://flutter-update.firebaseio.com/products.json');
+    
+    //returns the Future that "then" returns 
+    //(that Future object resolves to a void  Future<void>)
+    return http
+        .post(
+      url,
+      //converts value we pass to json format
+      body: json.encode({
+        "title": product.title,
+        "description": product.description,
+        "imageUrl": product.imageUrl,
+        "price": product.price.toString(),
+        "isFavorite": product.isFavorite,
+      }),
+      //then takes a function which will execute
+      //once we have a response (in this case)
+    )
+        .then((response) {
+      print(json.decode(response.body));
+      final newProduct = Product(
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        //decodes response body from json format to Map 
+        id: json.decode(response.body)["name"],
+      );
+      _items.insert(0, newProduct);
+      //_items.add(newProduct);
+      notifyListeners();
+    }).catchError((error){
+      print(error);
+      //to add another catchError in another class
+      throw error;
+    });
   }
 
   void updateProduct(String id, Product newProduct) {
@@ -83,7 +116,7 @@ class Products with ChangeNotifier {
     if (prodIndex >= 0) {
       _items[prodIndex] = newProduct;
       notifyListeners();
-    }else {
+    } else {
       print("....");
     }
   }
