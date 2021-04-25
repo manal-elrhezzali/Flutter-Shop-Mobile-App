@@ -26,6 +26,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
  
   @override
   Widget build(BuildContext context) {
+    //removed this and used Consummer to wrap the widget interested in ordersData 
+    //instead to avoid an infinite loop
+    //by using Provider orders listener here the whole widget will rebuild
+    
     // final ordersData = Provider.of<Orders>(context);
     return Scaffold(
       appBar: AppBar(
