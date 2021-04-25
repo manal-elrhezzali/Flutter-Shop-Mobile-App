@@ -107,19 +107,19 @@ class _EditProductScreenState extends State<EditProductScreen> {
       _isLoading = true;
     });
     if (_editedProduct.id != null) {
-      Provider.of<Products>(context, listen: false).updateProduct(
+      await Provider.of<Products>(context, listen: false).updateProduct(
         _editedProduct.id,
         _editedProduct,
       );
-      setState(() {
-        _isLoading = false;
-      });
+      // setState(() {
+      //   _isLoading = false;
+      // });
     } else {
       try {
         await Provider.of<Products>(context, listen: false)
             .addProduct(_editedProduct);
       } catch (error) {
-        //to wait for the user to click okay and pop the dialog 
+        //to wait for the user to click okay and pop the dialog
         //before running the code in finally
         await showDialog<Null>(
           context: context,
@@ -136,15 +136,21 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ],
           ),
         );
-      } finally {
-        //code  always runs no matter if we succeeded or not
-        ////we only pop once the product was added
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pop();
-      }
+      } 
+      // finally {
+      //   //code  always runs no matter if we succeeded or not
+      //   ////we only pop once the product was added
+      //   setState(() {
+      //     _isLoading = false;
+      //   });
+      //   Navigator.of(context).pop();
+      // }
     }
+    //will run only one of the await"s"is done
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.of(context).pop();
   }
 
   @override
