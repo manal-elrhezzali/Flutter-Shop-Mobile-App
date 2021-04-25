@@ -5,9 +5,25 @@ import '../providers/orders.dart' show Orders;
 import '../widgets/order_item.dart';
 import '../widgets/app_drawer.dart';
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   static const routeName = "/orders";
 
+  @override
+  _OrdersScreenState createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  Future _ordersFuture;
+  Future _obtainOrdersFuture() {
+    return Provider.of<Orders>(context, listen: false).fetchAndSetOrders();
+  }
+  //this ensures that no new Fututre is created just because the build() is rebuilt
+  @override
+  void initState() {
+    _ordersFuture = _obtainOrdersFuture();
+    super.initState();
+  }
+ 
   @override
   Widget build(BuildContext context) {
     // final ordersData = Provider.of<Orders>(context);
@@ -21,7 +37,7 @@ class OrdersScreen extends StatelessWidget {
       //new Future object initialization with every build re-run
       //dataSnapshot is the data currently returned by the Future
       body: FutureBuilder(
-        future: Provider.of<Orders>(context, listen: false).fetchAndSetOrders(),
+        future: _ordersFuture,
         builder: (ctx, dataSnapshot) {
           // means we are currently loading
           if (dataSnapshot.connectionState == ConnectionState.waiting) {
