@@ -76,8 +76,11 @@ class Products with ChangeNotifier {
     final url = Uri.parse(uri);
     try {
       final response = await http.get(url);
-      print(json.decode(response.body));
+      // print(json.decode(response.body));
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      if (extractedData == null) {
+        return;
+      }
       //transforming fetched Data
       final List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
@@ -124,14 +127,14 @@ class Products with ChangeNotifier {
         }),
       );
       //This code gets wrapped in a "then"
-      print(json.decode(response.body));
+      // print(json.decode(response.body));
       final newProduct = Product(
         title: product.title,
         description: product.description,
         price: product.price,
         imageUrl: product.imageUrl,
         //decodes response body from json format to Map
-        id: json.decode(response.body)["name"],
+        id: json.decode(response.body)["id"],
       );
       _items.insert(0, newProduct);
       //_items.add(newProduct);
@@ -225,7 +228,7 @@ class Products with ChangeNotifier {
   //   })
   //       //if the delete Req didn't succed
   //       //we re-add the product back to the list
-  //       //but the Http package we're using freezes the error idem for patch and put 
+  //       //but the Http package we're using freezes the error idem for patch and put
   //       //(>=400 response statusCode) so we always end up in the then
   //       //bloc
   //       .catchError((_) {

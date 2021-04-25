@@ -37,12 +37,14 @@ class Orders with ChangeNotifier {
         body: json.encode({
           "amount": total,
           "dateTime": timestamp.toIso8601String(),
-          "products": cartProducts.map((cartProduct) => {
-            "title": cartProduct.title,
-            "id": cartProduct.id,
-            "quantity": cartProduct.quantity,
-            "prince": cartProduct.price,
-          }).toList(),
+          "products": cartProducts
+              .map((cartProduct) => {
+                    "title": cartProduct.title,
+                    "id": cartProduct.id,
+                    "quantity": cartProduct.quantity,
+                    "price": cartProduct.price,
+                  })
+              .toList(),
         }),
       );
 
@@ -63,5 +65,57 @@ class Orders with ChangeNotifier {
       //to add another catchError in another class
       throw error;
     }
+  }
+
+  Future<void> fetchAndSetOrders() async {
+    const uri =
+        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/orders.json";
+    final url = Uri.parse(uri);
+    final response = await http.get(url);
+    print(json.decode(response.body));
+    final List<OrderItem> loadedOrders = [];
+    final extractedData = json.decode(response.body) as Map<String, dynamic>;
+    if (extractedData == null) {
+      return;
+    }
+    extractedData.forEach((orderId, orderData) {
+      loadedOrders.insert(
+        0,
+        OrderItem(
+          id: orderId,
+          amount: orderData["amount"],
+          dateTime: DateTime.parse(orderData["dateTime"]),
+          products: (orderData["products"] as List<dynamic>).map((item) =>
+            CartItem(
+                id: item["id"],
+                title: item["title"],
+                price: item["price"],
+                quantity: item["quantity"]),
+          ).toList(),
+        ),
+      );
+    });
+    _orders = loadedOrders;
+    notifyListeners();
+    //   final extractedData = json.decode(response.body) as Map<String, dynamic>;
+    //   //transforming fetched Data
+    //   final List<Product> loadedProducts = [];
+    //   extractedData.forEach((prodId, prodData) {
+    //     loadedProducts.insert(
+    //         0,
+    //         Product(
+    //           id: prodId,
+    //           title: prodData["title"],
+    //           description: prodData["description"],
+    //           price: prodData["price"],
+    //           imageUrl: prodData["imageUrl"],
+    //           isFavorite: prodData["isFavorite"],
+    //         ));
+    //   });
+    //   _items = loadedProducts;
+    //   notifyListeners();
+    // } catch (error) {
+    //   throw error;
+    // }
   }
 }
