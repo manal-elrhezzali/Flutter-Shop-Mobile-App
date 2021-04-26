@@ -26,19 +26,32 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          //should return a new instance of the provided class
-          //provides one and the same instance of the provided class to all child widgets
-          //(MaterialApp and all its children) which are interested
-          create: (ctx) => Products(),
+          create: (ctx) => Auth(),
+        ),
+        //sets up a provider which itself depends on another
+        //provider which was defined before the
+        //ChangeNotifierProxyProvider
+        // <=> provider package looks for a provider
+        // (defined before ChangeNotifierProxyProvider)
+        // that provides an Auth object and then
+        // it takes the Auth object
+        //and gives it to the ChangeNotifierProxyProvider (auth)
+        //whenever the auth changes the ChangeNotifierProxyProvider
+        //will be rebuilt
+        //ChangeNotifierProxyProvider<Provider you depend on, type of data you'll provide>(
+
+        ChangeNotifierProxyProvider<Auth, Products>(
+          //when this rebuilds we will loose all our items (Data we had there before)
+          // update: (ctx, auth, previousProducts) => Products(auth.token), 
+          create: null,
+          update: (ctx, auth, previousProducts) =>
+              Products(auth.token, previousProducts == null ? [] : previousProducts.items), 
         ),
         ChangeNotifierProvider(
           create: (ctx) => Cart(),
         ),
         ChangeNotifierProvider(
           create: (ctx) => Orders(),
-        ),
-        ChangeNotifierProvider(
-          create: (ctx) => Auth(),
         ),
       ],
       child: Consumer<Auth>(
