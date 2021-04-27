@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
           //when this rebuilds we will loose all our items (Data we had there before)
           // update: (ctx, auth, previousProducts) => Products(auth.token),
           create: null,
-          update: (ctx, auth, previousProducts) => Products(auth.token,
+          update: (ctx, auth, previousProducts) => Products(auth.token, auth.userId,
               previousProducts == null ? [] : previousProducts.items),
         ),
         ChangeNotifierProvider(

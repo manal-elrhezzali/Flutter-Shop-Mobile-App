@@ -7,7 +7,6 @@ import '../providers/auth.dart';
 
 import '../screens/product_detail_screen.dart';
 
-
 class ProductItem extends StatelessWidget {
   // final String id;
   // final String imageUrl;
@@ -30,7 +29,7 @@ class ProductItem extends StatelessWidget {
           onTap: () {
             Navigator.of(context).pushNamed(
               ProductDetailScreen.routeName,
-              arguments: product.id,
+              arguments: product.productId,
             );
           },
           child: Image.network(
@@ -52,7 +51,10 @@ class ProductItem extends StatelessWidget {
                 product.isFavorite ? Icons.favorite : Icons.favorite_border,
               ),
               onPressed: () {
-                product.toggleFavoriteStatus(authData.token);
+                product.toggleFavoriteStatus(
+                  authData.token,
+                  authData.userId,
+                );
               },
               color: Theme.of(context).accentColor,
             ),
@@ -65,7 +67,7 @@ class ProductItem extends StatelessWidget {
           trailing: IconButton(
             icon: Icon(Icons.shopping_cart),
             onPressed: () {
-              cart.addItem(product.id, product.price, product.title);
+              cart.addItem(product.productId, product.price, product.title);
               //showing info pop-up to inform usert hat the item was added successfully to the cart
               //establishes connexion to the nearest Scaffold that controls the page we're seeing
               //which is the Scaffold in the product_overview_screen
@@ -77,7 +79,7 @@ class ProductItem extends StatelessWidget {
                   label: "UNDO",
                   onPressed: () {
                     //undoes the addition of the item to the cart
-                    cart.removeItem(product.id);
+                    cart.removeItem(product.productId);
                   },
                 ),
               ));

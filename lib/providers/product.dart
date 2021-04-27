@@ -5,9 +5,8 @@ import 'package:http/http.dart' as http;
 
 import '../models/http_exception.dart';
 
-
 class Product with ChangeNotifier {
-  final String id;
+  final String productId;
   final String title;
   final String description;
   final double price;
@@ -15,7 +14,7 @@ class Product with ChangeNotifier {
   bool isFavorite;
 
   Product({
-    @required this.id,
+    @required this.productId,
     @required this.title,
     @required this.description,
     @required this.price,
@@ -23,19 +22,21 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavoriteStatus(String token) async {
+  Future<void> toggleFavoriteStatus(String token, String userId) async {
     var oldStatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
 
     final uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json?auth=$token";
+        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/userFavorites/$userId/$productId.json?auth=$token";
     final url = Uri.parse(uri);
     //patch : to merge data with existing data
-    final response = await http.patch(url,
-        body: json.encode({
-          "isFavorite": isFavorite,
-        }));
+    final response = await http.put(
+      url,
+      body: json.encode(
+        isFavorite,
+      ),
+    );
     if (response.statusCode >= 400) {
       isFavorite = oldStatus;
       notifyListeners();
