@@ -1,13 +1,14 @@
+
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import './product.dart';
 import '../models/http_exception.dart';
+import './product.dart';
 
 class Products with ChangeNotifier {
   List<Product> _items = [
-    //--------------dummy Data--------------
     // Product(
     //   id: 'p1',
     //   title: 'Red Shirt',
@@ -41,23 +42,25 @@ class Products with ChangeNotifier {
     //       'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
     // ),
   ];
-
+  // var _showFavoritesOnly = false;
   final String authToken;
   final String userId;
-  Products(this.authToken, this.userId, this._items,);
 
-  // var _showFavoritesOnly = false;
+  Products(this.authToken, this.userId, this._items);
 
   List<Product> get items {
     // if (_showFavoritesOnly) {
-    //   return _items.where((product) => product.isFavorite).toList();
+    //   return _items.where((prodItem) => prodItem.isFavorite).toList();
     // }
-    //return a copy of the _items not a reference to the _items
     return [..._items];
   }
 
   List<Product> get favoriteItems {
-    return _items.where((product) => product.isFavorite).toList();
+    return _items.where((prodItem) => prodItem.isFavorite).toList();
+  }
+
+  Product findById(String id) {
+    return _items.firstWhere((prod) => prod.productId == id);
   }
 
   // void showFavoritesOnly() {
@@ -70,205 +73,101 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  Product findById(String id) {
-    return _items.firstWhere((prod) => prod.productId == id);
-  }
-
-  Future<void> fetchAndSetProducts() async {
-    var uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json?auth=$authToken";
-    var url = Uri.parse(uri);
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    final filterString = filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+    var url =
+        'https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json?auth=$authToken&$filterString';
     try {
       final response = await http.get(url);
-      // print(json.decode(response.body));
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       if (extractedData == null) {
         return;
       }
-      uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/userFavorites/$userId.json?auth=$authToken";
-      url = Uri.parse(uri);
-     
+      url =
+          'https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/userFavorites/$userId.json?auth=$authToken';
       final favoriteResponse = await http.get(url);
       final favoriteData = json.decode(favoriteResponse.body);
-      //transforming fetched Data
       final List<Product> loadedProducts = [];
       extractedData.forEach((prodId, prodData) {
-        loadedProducts.insert(
-            0,
-            Product(
-              productId: prodId,
-              title: prodData["title"],
-              description: prodData["description"],
-              price: prodData["price"],
-              imageUrl: prodData["imageUrl"],
-              isFavorite: favoriteData == null ? false : favoriteData[prodId] ?? false,
-            ));
+        loadedProducts.add(Product(
+          productId: prodId,
+          title: prodData['title'],
+          description: prodData['description'],
+          price: prodData['price'],
+          isFavorite:
+              favoriteData == null ? false : favoriteData[prodId] ?? false,
+          imageUrl: prodData['imageUrl'],
+        ));
       });
       _items = loadedProducts;
       notifyListeners();
     } catch (error) {
-      throw error;
+      throw (error);
     }
   }
 
-  //by using "async" the method on which it is useed always
-  //returns a Future (our code gets wrapped in a Future
-  //that is why we don't have to use the return)
   Future<void> addProduct(Product product) async {
-    // const url =
-    //     "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json";
-    final uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json?auth=$authToken";
-    final url = Uri.parse(uri);
-    // await : we want to wait for this operation
-    // to finish before moving to the next code
-    // <=> means it wraps the code that comes
-    // after the await code into a "then"
+    final url =
+        'https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json?auth=$authToken';
     try {
       final response = await http.post(
         url,
         body: json.encode({
-          "title": product.title,
-          "description": product.description,
-          "imageUrl": product.imageUrl,
-          "price": product.price,
+          'title': product.title,
+          'description': product.description,
+          'imageUrl': product.imageUrl,
+          'price': product.price,
+          'creatorId': userId,
         }),
       );
-      //This code gets wrapped in a "then"
-      // print(json.decode(response.body));
       final newProduct = Product(
         title: product.title,
         description: product.description,
         price: product.price,
         imageUrl: product.imageUrl,
-        //decodes response body from json format to Map
-        productId: json.decode(response.body)["id"],
+        productId: json.decode(response.body)['name'],
       );
-      _items.insert(0, newProduct);
-      //_items.add(newProduct);
+      _items.add(newProduct);
+      // _items.insert(0, newProduct); // at the start of the list
       notifyListeners();
     } catch (error) {
       print(error);
-      //to add another catchError in another class
       throw error;
     }
-
-    //--------------using Future without async & await--------------
-    // final url =
-    //     Uri.parse('https://flutter-update.firebaseio.com/products.json');
-
-    // //returns the Future that "then" returns
-    // //(that Future object resolves to a void  Future<void>)
-    // return http
-    //     .post(
-    //   url,
-    //   //converts value we pass to json format
-    //   body: json.encode({
-    //     "title": product.title,
-    //     "description": product.description,
-    //     "imageUrl": product.imageUrl,
-    //     "price": product.price.toString(),
-    //     "isFavorite": product.isFavorite,
-    //   }),
-    //   //then takes a function which will execute
-    //   //once we have a response (in this case)
-    // )
-    //     .then((response) {
-    //   print(json.decode(response.body));
-    //   final newProduct = Product(
-    //     title: product.title,
-    //     description: product.description,
-    //     price: product.price,
-    //     imageUrl: product.imageUrl,
-    //     //decodes response body from json format to Map
-    //     id: json.decode(response.body)["name"],
-    //   );
-    //   _items.insert(0, newProduct);
-    //   //_items.add(newProduct);
-    //   notifyListeners();
-    // }).catchError((error){
-    //   print(error);
-    //   //to add another catchError in another class
-    //   throw error;
-    // });
   }
 
   Future<void> updateProduct(String id, Product newProduct) async {
     final prodIndex = _items.indexWhere((prod) => prod.productId == id);
     if (prodIndex >= 0) {
-      final uri =
-          "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken";
-      final url = Uri.parse(uri);
-      //patch : to merge data with existing data
+      final url =
+          'https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken';
       await http.patch(url,
           body: json.encode({
-            "title": newProduct.title,
-            "description": newProduct.description,
-            "imageUrl": newProduct.imageUrl,
-            "price": newProduct.price,
+            'title': newProduct.title,
+            'description': newProduct.description,
+            'imageUrl': newProduct.imageUrl,
+            'price': newProduct.price
           }));
       _items[prodIndex] = newProduct;
       notifyListeners();
     } else {
-      print("....");
+      print('...');
     }
   }
-  //------------------Using then with Futures------------------
-  // void deleteProduct(String id) {
-  //   final uri =
-  //       "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.jso";
-  //   final url = Uri.parse(uri);
-  //   //optimistic updating
-  //   final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
-  //   var existingProduct = _items[existingProductIndex];
-  //   _items.removeAt(existingProductIndex);
-  //   notifyListeners();
-  //   http.delete(url)
-  //       //if the delete Req succeeds we remove the reference to
-  //       //the product in memory to allow dart to remove the object
-  //       //in memory
-  //       .then((response) {
-  //     //an error occurred
-  //     if (response.statusCode >= 400) {
-  //       throw HttpException("Could not delete product.");//throw is like return, it cancels the function execution
-  //     }
-  //     existingProduct = null;
-  //   })
-  //       //if the delete Req didn't succed
-  //       //we re-add the product back to the list
-  //       //but the Http package we're using freezes the error idem for patch and put
-  //       //(>=400 response statusCode) so we always end up in the then
-  //       //bloc
-  //       .catchError((_) {
-  //     _items.insert(existingProductIndex, existingProduct);
-  //     notifyListeners();
-  //   });
-  // }
 
-  //------------------using async and await------------------
   Future<void> deleteProduct(String id) async {
-    final uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken";
-    final url = Uri.parse(uri);
-    //optimistic updating
+    final url =
+        'https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken';
     final existingProductIndex = _items.indexWhere((prod) => prod.productId == id);
     var existingProduct = _items[existingProductIndex];
     _items.removeAt(existingProductIndex);
     notifyListeners();
     final response = await http.delete(url);
-
-    //an error occurred
     if (response.statusCode >= 400) {
       _items.insert(existingProductIndex, existingProduct);
       notifyListeners();
-      throw HttpException(
-          "Could not delete product."); //throw is like return, it cancels the function execution
+      throw HttpException('Could not delete product.');
     }
-    //if the delete Req succeeds (response.statusCode < 400)
-    //we remove the reference to
-    //the product in memory to allow dart to remove the object
-    //in memory
     existingProduct = null;
   }
 }
