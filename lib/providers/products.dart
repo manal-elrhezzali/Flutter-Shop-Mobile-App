@@ -74,8 +74,8 @@ class Products with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProducts() async {
-    const uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json";
+    final uri =
+        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json?auth=$authToken";
     final url = Uri.parse(uri);
     try {
       final response = await http.get(url);
@@ -111,8 +111,8 @@ class Products with ChangeNotifier {
   Future<void> addProduct(Product product) async {
     // const url =
     //     "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json";
-    const uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json";
+    final uri =
+        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products.json?auth=$authToken";
     final url = Uri.parse(uri);
     // await : we want to wait for this operation
     // to finish before moving to the next code
@@ -192,7 +192,7 @@ class Products with ChangeNotifier {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
       final uri =
-          "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json";
+          "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken";
       final url = Uri.parse(uri);
       //patch : to merge data with existing data
       await http.patch(url,
@@ -243,7 +243,7 @@ class Products with ChangeNotifier {
   //------------------using async and await------------------
   Future<void> deleteProduct(String id) async {
     final uri =
-        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json";
+        "https://flutter-shop-app-cd532-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken";
     final url = Uri.parse(uri);
     //optimistic updating
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);

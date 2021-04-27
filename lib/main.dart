@@ -42,16 +42,18 @@ class MyApp extends StatelessWidget {
 
         ChangeNotifierProxyProvider<Auth, Products>(
           //when this rebuilds we will loose all our items (Data we had there before)
-          // update: (ctx, auth, previousProducts) => Products(auth.token), 
+          // update: (ctx, auth, previousProducts) => Products(auth.token),
           create: null,
-          update: (ctx, auth, previousProducts) =>
-              Products(auth.token, previousProducts == null ? [] : previousProducts.items), 
+          update: (ctx, auth, previousProducts) => Products(auth.token,
+              previousProducts == null ? [] : previousProducts.items),
         ),
         ChangeNotifierProvider(
           create: (ctx) => Cart(),
         ),
-        ChangeNotifierProvider(
-          create: (ctx) => Orders(),
+        ChangeNotifierProxyProvider<Auth, Orders>(
+          create: null,
+          update: (ctx, auth, previousOrders) => Orders(
+              auth.token, previousOrders == null ? [] : previousOrders.orders),
         ),
       ],
       child: Consumer<Auth>(
