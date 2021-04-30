@@ -226,17 +226,17 @@ class _AuthCardState extends State<AuthCard>
         borderRadius: BorderRadius.circular(10.0),
       ),
       elevation: 8.0,
-      child: AnimatedBuilder(
-        animation: _heightAnimation,
-        builder: (ctx, child1) => Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeIn,
+
             // height: _authMode == AuthMode.Signup ? 320 : 260,
-            height: _heightAnimation.value.height,
+            height: _authMode == AuthMode.Signup ? 320 : 260,
             constraints:
-                BoxConstraints(minHeight: _heightAnimation.value.height),
+                BoxConstraints(minHeight: _authMode == AuthMode.Signup ? 320 : 260),
             width: deviceSize.width * 0.75,
             padding: EdgeInsets.all(16.0),
-            child: child1),
-        child: Form(
+            child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
