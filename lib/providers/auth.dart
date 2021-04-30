@@ -112,6 +112,7 @@ class Auth with ChangeNotifier {
 
   Future<bool> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
+    //getting data from SharedPreferences
     if (!prefs.containsKey("userData")) {
       return false;
     }
@@ -138,6 +139,7 @@ class Auth with ChangeNotifier {
     }
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
+    //clearing the SharedPreferences
     // prefs.remove("userData");
     prefs.clear();
   }
