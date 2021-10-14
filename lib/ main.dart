@@ -8,7 +8,7 @@ import './screens/orders_screen.dart';
 import './screens/user_products_screen.dart';
 import './screens/edit_product_screen.dart';
 import './screens/auth_screen.dart';
-import './screens/splash-screen.dart';
+import 'screens/splash_screen.dart';
 
 import './providers/products.dart';
 import './providers/cart.dart';
